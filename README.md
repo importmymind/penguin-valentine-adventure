@@ -2,7 +2,7 @@
 
 A heartwarming 3D web-based game featuring two penguins finding love in the frozen wilderness. Developed using **Three.js**, this project combines exploration, interactive storytelling, and a fun tobogganing mini-game perfect for Valentine's Day.
 
-![Project Banner](assets/story/6.png)
+![Project Banner]![Uploading Gemini_Generated_Image_4tmuij4tmuij4tmu.png…]
 *(Note: Screenshot/banner placeholder based on project assets)*
 
 ## 📖 About the Project
