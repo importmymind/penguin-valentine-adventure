@@ -1,0 +1,1642 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #000;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+canvas {
+    display: block;
+}
+
+#ui {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    pointer-events: none;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    width: 100%;
+    z-index: 10;
+}
+
+.key {
+    display: inline-block;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin: 0 2px;
+    background: rgba(0, 0, 0, 0.5);
+    font-weight: bold;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+}
+
+#status {
+    font-size: 1rem;
+    margin-top: 15px;
+    opacity: 0.8;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: opacity 0.5s;
+}
+
+#mouse-hint {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+    text-align: right;
+}
+
+/* Optional fading class */
+.fade-in {
+    animation: fadeIn 2s forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* --- Letter UI (Winter Theme) --- */
+.hidden {
+    display: none !important;
+}
+
+#letter-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 15, 30, 0.8);
+    /* Dark Winter Night backdrop */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    opacity: 0;
+    animation: fadeInUI 1s forwards;
+    backdrop-filter: blur(5px);
+}
+
+@keyframes fadeInUI {
+    to {
+        opacity: 1;
+    }
+}
+
+.envelope-wrapper {
+    position: relative;
+    width: 90%;
+    max-width: 800px;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    /* Align bottom */
+    perspective: 1000px;
+    /* For 3D flap */
+}
+
+/* Envelope Parts */
+.envelope-back {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Covers full letter area initially? Or fixed height? */
+    background-color: #005a8d;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.envelope-front {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    /* Covers bottom 60% of the letter */
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Visuals for front pocket (Triangle folds) */
+.envelope-front::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-left: 400px solid #0077be;
+    border-top: 200px solid transparent;
+    border-bottom: 300px solid #0077be;
+    border-radius: 0 0 0 15px;
+}
+
+.envelope-front::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-right: 400px solid #0088cc;
+    border-top: 200px solid transparent;
+    border-bottom: 300px solid #0088cc;
+    border-radius: 0 0 15px 0;
+}
+
+.envelope-flap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    /* Top part */
+    background-color: #006699;
+    border-radius: 15px 15px 0 0;
+    /* Rounded top */
+    transform-origin: top;
+    z-index: 11;
+    transition: transform 0.6s ease-in-out, z-index 0.6s steps(1, end);
+    /* Clip it to look like a triangle flap if desired, or just a rect flap */
+    clip-path: polygon(0 0, 50% 100%, 100% 0);
+    /* Triangle flap pointing down */
+    height: 250px;
+    /* Fixed height for flap */
+}
+
+.envelope-flap.open {
+    transform: rotateX(180deg);
+    z-index: 0;
+}
+
+.letter-container {
+    background: linear-gradient(135deg, #f0f8ff 0%, #e6f7ff 100%);
+    /* Icy White */
+    padding: 60px 80px;
+    border-radius: 15px;
+    box-shadow: 0 0 60px rgba(176, 224, 230, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.8);
+    text-align: center;
+    width: 100%;
+    /* Fill wrapper */
+    position: relative;
+    border: 4px solid #b0e0e6;
+    overflow: hidden;
+
+    /* Animation Start State */
+    z-index: 5;
+    transform: translateY(100px) scale(0.95);
+    /* Tucked in */
+    transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.letter-container.slide-up {
+    transform: translateY(-80px) scale(1);
+    /* Slide out and up */
+    z-index: 20;
+    /* Pop above front */
+}
+
+/* Fade out envelope after opening */
+.envelope-wrapper.vanish .envelope-back,
+.envelope-wrapper.vanish .envelope-front,
+.envelope-wrapper.vanish .envelope-flap {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+.envelope-wrapper.vanish .envelope-front::before,
+.envelope-wrapper.vanish .envelope-front::after {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+/* Snowflake Decorations */
+.letter-container::before {
+    content: '❄';
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    font-size: 80px;
+    color: rgba(176, 224, 230, 0.3);
+    z-index: 0;
+}
+
+.letter-container::after {
+    content: '❄';
+    position: absolute;
+    bottom: -20px;
+    right: -20px;
+    font-size: 80px;
+    color: rgba(176, 224, 230, 0.3);
+    z-index: 0;
+    transform: rotate(180deg);
+}
+
+@keyframes popUp {
+    to {
+        transform: scale(1);
+    }
+}
+
+.letter-content {
+    position: relative;
+    z-index: 1;
+}
+
+.letter-content h2 {
+    font-family: 'Great Vibes', cursive;
+    color: #0077be;
+    /* Ocean Blue */
+    font-size: 3.5rem;
+    margin: 0 0 25px 0;
+    text-shadow: 2px 2px 4px rgba(176, 224, 230, 0.5);
+}
+
+.letter-content p {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: #2c3e50;
+    line-height: 1.8;
+}
+
+.letter-content .highlight {
+    color: #0077be;
+    font-weight: bold;
+    font-size: 1.5rem;
+    margin-top: 25px;
+    display: block;
+}
+
+/* Penguin Icon */
+/* Cute CSS Penguins for Letter */
+.penguin-couple {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.css-penguin {
+    width: 40px;
+    height: 60px;
+    background: #333;
+    border-radius: 50% 50% 40% 40%;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    animation: waddle 2s infinite ease-in-out;
+}
+
+.css-penguin::before {
+    content: '';
+    /* Belly */
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    width: 30px;
+    height: 40px;
+    background: white;
+    border-radius: 50% 50% 40% 40%;
+}
+
+.css-penguin::after {
+    content: '';
+    /* Beak */
+    position: absolute;
+    top: 15px;
+    left: 17px;
+    width: 6px;
+    height: 4px;
+    background: #ffae00;
+    border-radius: 50%;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.css-penguin .eye {
+    position: absolute;
+    top: 10px;
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
+}
+
+.css-penguin .eye.left {
+    left: 10px;
+}
+
+.css-penguin .eye.right {
+    right: 10px;
+}
+
+.css-penguin .pupil {
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 2px;
+    height: 2px;
+    background: black;
+    border-radius: 50%;
+}
+
+.css-heart {
+    font-size: 2rem;
+    color: #ff1493;
+    animation: beat 1s infinite alternate;
+}
+
+@keyframes waddle {
+
+    0%,
+    100% {
+        transform: rotate(-5deg);
+    }
+
+    50% {
+        transform: rotate(5deg);
+    }
+}
+
+@keyframes beat {
+    to {
+        transform: scale(1.2);
+    }
+}
+
+/* Envelope Opening Animation Support */
+.envelope-open-anim {
+    animation: openEnvelope 1s forwards ease-out;
+    transform-origin: bottom center;
+}
+
+@keyframes openEnvelope {
+    0% {
+        transform: scaleY(0);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+}
+
+#close-letter {
+    background: linear-gradient(to right, #0077be, #00a8e8);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-family: 'Playfair Display', serif;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 4px 15px rgba(0, 119, 190, 0.4);
+}
+
+#close-letter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 119, 190, 0.6);
+}
+
+/* Firework Particles */
+.firework-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 200;
+    /* Above letter */
+    animation: explode 1s forwards ease-out;
+}
+
+@keyframes explode {
+    0% {
+        transform: translate(var(--dtx), var(--dty)) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0.5);
+        opacity: 0;
+    }
+}
+
+/* Interactive Section */
+.interactive-section h3 {
+    font-family: 'Great Vibes', cursive;
+    color: #ff1493;
+    font-size: 2.5rem;
+    margin: 20px 0;
+    text-shadow: 1px 1px 2px rgba(255, 20, 147, 0.2);
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.valentine-btn {
+    background: linear-gradient(to right, #ff69b4, #ff1493);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    cursor: pointer;
+    font-family: 'Playfair Display', serif;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(255, 20, 147, 0.3);
+}
+
+.valentine-btn:hover {
+    transform: scale(1.1) rotate(2deg);
+    box-shadow: 0 6px 15px rgba(255, 20, 147, 0.5);
+    background: linear-gradient(to right, #ff1493, #ff69b4);
+}
+
+/* --- Guidance Overlay --- */
+#guidance-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    padding: 40px;
+    border-radius: 20px;
+    border: 3px solid #ff69b4;
+    text-align: center;
+    color: white;
+    box-shadow: 0 0 50px rgba(255, 105, 180, 0.6);
+    z-index: 1000;
+    font-family: 'Playfair Display', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.guidance-card h2 {
+    color: #ff69b4;
+    font-size: 3rem;
+    margin: 0 0 20px 0;
+    text-shadow: 0 0 15px rgba(255, 105, 180, 0.9);
+    font-family: 'Great Vibes', cursive;
+}
+
+.guidance-card p {
+    font-size: 1.4rem;
+    color: #ffddee;
+    margin-bottom: 30px;
+}
+
+.space-prompt {
+    font-size: 1.2rem;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px 30px;
+    border-radius: 12px;
+    display: inline-block;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    animation: pulse 1.5s infinite;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+        box-shadow: 0 0 20px rgba(255, 105, 180, 0.6);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+}
+
+/* --- Storybook Opening UI --- */
+.storybook-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 20, 40, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    backdrop-filter: blur(8px);
+}
+
+.book-container {
+    width: 900px;
+    height: 600px;
+    position: relative;
+    background: #fffdf5;
+    /* Creamy paper */
+    box-shadow: 0 0 60px rgba(255, 105, 180, 0.4), inset 0 0 40px rgba(0, 0, 0, 0.05);
+    border-radius: 15px 30px 30px 15px;
+    display: flex;
+    overflow: hidden;
+    border: 10px solid transparent;
+    border-image: linear-gradient(to bottom right, #ff69b4, #8a2be2) 1;
+}
+
+/* Page Transitions */
+.book-page {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #fffdf5 0%, #fefcf3 100%);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    text-align: center;
+    opacity: 0;
+    transform-origin: left center;
+    animation: none;
+}
+
+.book-page {
+    display: none;
+}
+
+.book-page.active {
+    display: flex;
+    opacity: 1;
+    animation: turnPageIn 0.8s cubic-bezier(0.645, 0.045, 0.355, 1.000) forwards;
+}
+
+@keyframes turnPageIn {
+    0% {
+        opacity: 0;
+        transform: rotateY(-30deg) translateX(30px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: rotateY(0) translateX(0);
+    }
+}
+
+.book-title {
+    font-family: 'Great Vibes', cursive;
+    font-size: 6rem;
+    background: -webkit-linear-gradient(#ff1493, #ff69b4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 25px;
+}
+
+.book-subtitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: #555;
+    font-style: italic;
+    margin-bottom: 50px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 20px;
+    display: inline-block;
+}
+
+.chapter-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    color: #ff1493;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #ffdeeb;
+    padding-bottom: 15px;
+}
+
+.decorative-divider {
+    font-size: 3rem;
+    margin: 30px 0;
+    color: #88ccff;
+}
+
+.page-content p {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    line-height: 1.8;
+    color: #444;
+    margin-bottom: 25px;
+    max-width: 750px;
+}
+
+.book-btn {
+    background: transparent;
+    border: 3px solid #ff69b4;
+    color: #ff69b4;
+    padding: 12px 35px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin: 0 15px;
+    font-weight: bold;
+}
+
+.book-btn:hover {
+    background: #ff69b4;
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+}
+
+.start-btn {
+    background: linear-gradient(to right, #ff69b4, #ff1493);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
+}
+
+.nav-buttons {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.book-controls {
+    display: flex;
+    gap: 80px;
+    justify-content: center;
+    margin: 40px 0;
+}
+
+.control-group span {
+    display: block;
+    font-weight: bold;
+    color: #0077be;
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.control-group .keys {
+    font-family: 'Courier New', monospace;
+    background: white;
+    padding: 15px 25px;
+    border-radius: 12px;
+    color: #333;
+    font-size: 1.5rem;
+    border: 2px solid #ffdeeb;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    letter-spacing: 5px;
+}
+
+
+/* --- Realistic 3D Book UI --- */
+.book-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(20, 30, 50, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    backdrop-filter: blur(5px);
+}
+
+.book-scene {
+    position: relative;
+    width: 1000px;
+    height: 650px;
+    perspective: 2000px;
+}
+
+.book {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 1s;
+}
+
+/* Spread: Container for Left and Right Pages */
+.spread {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    transform-style: preserve-3d;
+}
+
+.spread.active {
+    display: flex;
+    animation: fadeInSpread 0.6s ease-out;
+}
+
+@keyframes fadeInSpread {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.page {
+    width: 50%;
+    height: 100%;
+    background: #fffbef;
+    /* Ivory paper */
+    position: relative;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.05), 5px 5px 15px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0dacc;
+}
+
+.left-page {
+    border-radius: 10px 0 0 10px;
+    border-right: 1px solid #ccc;
+    /* Spine crease */
+    background: linear-gradient(to right, #fffbef 95%, #e8e4d8 100%);
+}
+
+.right-page {
+    border-radius: 0 10px 10px 0;
+    border-left: 1px solid #ccc;
+    background: linear-gradient(to left, #fffbef 95%, #e8e4d8 100%);
+}
+
+.page-content {
+    padding: 50px;
+    height: 100%;
+    color: #443322;
+    font-family: 'Playfair Display', serif;
+    overflow-y: auto;
+}
+
+.center-xy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+/* Typography */
+.book-title-text {
+    font-family: 'Great Vibes', cursive;
+    font-size: 5rem;
+    color: #cc0055;
+    margin: 20px 0;
+    line-height: 1.2;
+}
+
+.book-author {
+    font-style: italic;
+    color: #665544;
+    margin-top: 20px;
+}
+
+.chapter-head {
+    font-size: 2.2rem;
+    color: #d14785;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #ffccdd;
+    padding-bottom: 15px;
+    font-family: 'Playfair Display', serif;
+}
+
+.separator-line {
+    width: 50px;
+    height: 2px;
+    background: #cc0055;
+    margin: 20px auto;
+}
+
+.ornament {
+    font-size: 3rem;
+    color: #88ccff;
+}
+
+.text-body p {
+    font-size: 1.25rem;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    text-align: justify;
+}
+
+.drop-cap {
+    float: left;
+    font-size: 4rem;
+    line-height: 0.8;
+    padding-top: 4px;
+    padding-right: 8px;
+    padding-left: 3px;
+    color: #cc0055;
+    font-family: 'Great Vibes', cursive;
+}
+
+.highlight-text {
+    font-weight: bold;
+    color: #d14785;
+    text-align: center !important;
+    margin-top: 30px;
+}
+
+.page-number {
+    position: absolute;
+    bottom: 25px;
+    font-size: 1rem;
+    color: #999;
+}
+
+.left-page .page-number {
+    left: 30px;
+}
+
+.right-page .page-number {
+    right: 30px;
+}
+
+/* Control Grid */
+.control-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 40px;
+    width: 100%;
+}
+
+.c-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.c-label {
+    font-weight: bold;
+    color: #0077aa;
+    /* Blue for P1 */
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.c-col:last-child .c-label {
+    color: #d14785;
+}
+
+/* Pink for P2 */
+
+.c-keys {
+    font-family: 'Courier New', monospace;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 15px 20px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.start-btn-book {
+    background: linear-gradient(135deg, #ff69b4, #d14785);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.4rem;
+    font-family: 'Playfair Display', serif;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(210, 70, 130, 0.4);
+    transition: transform 0.2s;
+}
+
+.start-btn-book:hover {
+    transform: scale(1.05);
+}
+
+/* Nav Arrows */
+.nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: white;
+    border: none;
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    color: #555;
+    transition: background 0.3s;
+}
+
+.nav-arrow:hover {
+    background: #fee;
+    color: #d14785;
+}
+
+.prev-arrow {
+    left: -70px;
+}
+
+.next-arrow {
+    right: -70px;
+}
+
+
+/* --- New Controls Styling --- */
+.key-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.key-box {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, #fff, #f0f0f0);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 1.4rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 -3px 0 rgba(0, 0, 0, 0.1);
+    color: #333;
+    transition: transform 0.1s;
+    border: 1px solid #ddd;
+}
+
+/* Specific Key Colors */
+.key-w,
+.key-a,
+.key-s,
+.key-d {
+    border-color: #00aaff;
+    color: #005a9e;
+    background: linear-gradient(135deg, #e6f7ff, #cceeff);
+    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.key-up,
+.key-left,
+.key-down,
+.key-right {
+    border-color: #ff69b4;
+    color: #b33975;
+    background: linear-gradient(135deg, #fff0f5, #ffdde9);
+    box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* --- Falling Snow Overlay --- */
+#snow-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    overflow: hidden;
+}
+
+.snowflake {
+    position: absolute;
+    top: -20px;
+    color: #fff;
+    user-select: none;
+    z-index: 1000;
+    pointer-events: none;
+    animation-name: snowfall;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@keyframes snowfall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.9;
+    }
+
+    100% {
+        transform: translateY(110vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+
+/* --- Story Images --- */
+.story-image-container {
+    width: 100%;
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.story-img {
+    max-width: 90%;
+    max-height: 250px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    border: 4px solid white;
+    transform: rotate(-1deg);
+    transition: transform 0.3s;
+}
+
+.story-img:hover {
+    transform: scale(1.02) rotate(0deg);
+}
+
+
+/* --- NEW 3D LEAF LOGIC --- */
+.book-scene {
+    perspective: 3000px;
+}
+
+.book {
+    transform-style: preserve-3d;
+}
+
+/* Disable old spread styles */
+.spread,
+.spread.active {
+    display: none !important;
+}
+
+/* New Page Classes */
+.page {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    backface-visibility: hidden;
+    /* Reset old page styles */
+    display: block !important;
+    opacity: 1 !important;
+    animation: none !important;
+}
+
+/* Static Bases */
+.left-base {
+    left: 0;
+    width: 50%;
+    z-index: 1;
+    /* Bottom layer */
+    border-radius: 10px 0 0 10px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 100 100'%3E%3Ctext x='15' y='35' font-family='serif' font-size='22' fill='%235599ff' opacity='0.4'%3E%E2%9D%84%3C/text%3E%3Ctext x='65' y='75' font-family='serif' font-size='28' fill='%235599ff' opacity='0.3'%3E%E2%9D%85%3C/text%3E%3Ctext x='75' y='25' font-family='serif' font-size='16' fill='%235599ff' opacity='0.3'%3E%E2%9D%86%3C/text%3E%3Ctext x='35' y='85' font-family='serif' font-size='18' fill='%235599ff' opacity='0.4'%3E%E2%9D%84%3C/text%3E%3C/svg%3E"),
+        linear-gradient(to right, #fffbef 95%, #d0c0b0 100%);
+}
+
+.right-base {
+    left: 50%;
+    width: 50%;
+    z-index: 1;
+    /* Bottom layer */
+    border-radius: 0 10px 10px 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 100 100'%3E%3Ctext x='15' y='35' font-family='serif' font-size='22' fill='%235599ff' opacity='0.4'%3E%E2%9D%84%3C/text%3E%3Ctext x='65' y='75' font-family='serif' font-size='28' fill='%235599ff' opacity='0.3'%3E%E2%9D%85%3C/text%3E%3Ctext x='75' y='25' font-family='serif' font-size='16' fill='%235599ff' opacity='0.3'%3E%E2%9D%86%3C/text%3E%3Ctext x='35' y='85' font-family='serif' font-size='18' fill='%235599ff' opacity='0.4'%3E%E2%9D%84%3C/text%3E%3C/svg%3E"),
+        linear-gradient(to left, #fffbef 95%, #d0c0b0 100%);
+}
+
+/* Dynamic Leaves */
+.leaf {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    /* Hinge at center */
+    width: 50%;
+    height: 100%;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1.000);
+}
+
+.leaf.flipped {
+    transform: rotateY(-180deg);
+}
+
+.leaf-front,
+.leaf-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fffbef;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.leaf-front {
+    z-index: 2;
+    border-radius: 0 10px 10px 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 100 100'%3E%3Ctext x='15' y='35' font-family='serif' font-size='22' fill='%235599ff' opacity='0.4'%3E%E2%9D%84%3C/text%3E%3Ctext x='65' y='75' font-family='serif' font-size='28' fill='%235599ff' opacity='0.3'%3E%E2%9D%85%3C/text%3E%3Ctext x='75' y='25' font-family='serif' font-size='16' fill='%235599ff' opacity='0.3'%3E%E2%9D%86%3C/text%3E%3Ctext x='35' y='85' font-family='serif' font-size='18' fill='%235599ff' opacity='0.4'%3E%E2%9D%84%3C/text%3E%3C/svg%3E"),
+        linear-gradient(to left, #fffbef 95%, #e0dacc 100%);
+}
+
+.leaf-back {
+    transform: rotateY(180deg);
+    z-index: 1;
+    border-radius: 10px 0 0 10px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 100 100'%3E%3Ctext x='15' y='35' font-family='serif' font-size='22' fill='%235599ff' opacity='0.4'%3E%E2%9D%84%3C/text%3E%3Ctext x='65' y='75' font-family='serif' font-size='28' fill='%235599ff' opacity='0.3'%3E%E2%9D%85%3C/text%3E%3Ctext x='75' y='25' font-family='serif' font-size='16' fill='%235599ff' opacity='0.3'%3E%E2%9D%86%3C/text%3E%3Ctext x='35' y='85' font-family='serif' font-size='18' fill='%235599ff' opacity='0.4'%3E%E2%9D%84%3C/text%3E%3C/svg%3E"),
+        linear-gradient(to right, #fffbef 95%, #e0dacc 100%);
+}
+
+
+/* --- STACK EFFECT & ARROW FIX --- */
+.nav-arrow {
+    z-index: 5000 !important;
+    width: 70px;
+    height: 70px;
+    font-size: 2.5rem;
+    color: #d14785;
+    background: white;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    /* Push them further out */
+}
+
+.prev-arrow {
+    left: -100px;
+}
+
+.next-arrow {
+    right: -100px;
+}
+
+/* Fake Stack Depth */
+.left-base::before,
+.right-base::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    width: 100%;
+    height: 98%;
+    background: #f8f8f8;
+    z-index: -1;
+    border: 1px solid #ddd;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.left-base::before {
+    left: -4px;
+    border-radius: 10px 0 0 10px;
+    background: repeating-linear-gradient(90deg, #fff, #fff 1px, #eee 1px, #eee 2px);
+}
+
+.right-base::before {
+    right: -4px;
+    border-radius: 0 10px 10px 0;
+    background: repeating-linear-gradient(-90deg, #fff, #fff 1px, #eee 1px, #eee 2px);
+}
+
+.left-base::after,
+.right-base::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    width: 100%;
+    height: 96%;
+    background: #f0f0f0;
+    z-index: -2;
+    border: 1px solid #ccc;
+}
+
+.left-base::after {
+    left: -8px;
+    border-radius: 10px 0 0 10px;
+}
+
+.right-base::after {
+    right: -8px;
+    border-radius: 0 10px 10px 0;
+}
+
+/* --- SOFT SNOWFLAKE BACKGROUND UPDATE --- */
+:root {
+    --snow-bg: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a0c4e0' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    --paper-base: #fffdf9;
+}
+
+.page {
+    background-color: var(--paper-base) !important;
+}
+
+/* RE-APPLY GRADIENTS WITH PATTERN */
+.left-base {
+    background-image: var(--snow-bg), linear-gradient(to right, var(--paper-base) 90%, #d4cec0 100%) !important;
+    background-size: 60px 60px, 100% 100%;
+}
+
+.right-base {
+    background-image: var(--snow-bg), linear-gradient(to left, var(--paper-base) 90%, #d4cec0 100%) !important;
+    background-size: 60px 60px, 100% 100%;
+}
+
+.leaf-front {
+    background-image: var(--snow-bg), linear-gradient(to left, var(--paper-base) 95%, #e6e0d0 100%) !important;
+    background-size: 60px 60px, 100% 100%;
+}
+
+.leaf-back {
+    background-image: var(--snow-bg), linear-gradient(to right, var(--paper-base) 95%, #e6e0d0 100%) !important;
+    background-size: 60px 60px, 100% 100%;
+}
+
+/* Enhancements */
+.story-image-container {
+    padding: 10px;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transform: rotate(-1deg);
+}
+
+/* --- SCATTERED SNOWFLAKE BACKGROUND FIX --- */
+:root {
+    /* Large tile with scattered snowflakes of different sizes */
+    --snow-bg: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23b0d4f0' stroke-width='1' opacity='0.4'%3E%3C!-- Large scattered flake --%3E%3Cpath transform='translate(30 30) scale(1.5)' d='M10 0v20M0 10h20M2.9 2.9l14.2 14.2M2.9 17.1L17.1 2.9' /%3E%3C!-- Medium flake --%3E%3Cpath transform='translate(120 80) scale(1)' d='M10 0v20M0 10h20M2 2l16 16M2 18L18 2' /%3E%3C!-- Small flake --%3E%3Cpath transform='translate(60 160) scale(0.6)' d='M10 0v20M0 10h20' /%3E%3C!-- Tiny flake --%3E%3Cpath transform='translate(170 140) scale(0.8)' d='M10 0v20M0 10h20M2.9 2.9l14.2 14.2M2.9 17.1L17.1 2.9' /%3E%3C!-- Dot --%3E%3Ccircle cx='170' cy='30' r='1.5' fill='%23b0d4f0' stroke='none' /%3E%3Ccircle cx='20' cy='120' r='1' fill='%23b0d4f0' stroke='none' /%3E%3C/g%3E%3C/svg%3E");
+    --paper-base: #fffdf9;
+}
+
+.page {
+    background-color: var(--paper-base) !important;
+}
+
+/* Apply larger background size to make it sparse */
+.left-base,
+.right-base,
+.leaf-front,
+.leaf-back {
+    background-image: var(--snow-bg), linear-gradient(to right, var(--paper-base) 90%, #d4cec0 100%) !important;
+    background-size: 200px 200px, 100% 100%;
+    /* Large tile size for sparsity */
+    background-repeat: repeat, no-repeat;
+}
+
+/* Fix gradients for specific sides */
+.right-base,
+.leaf-front {
+    background-image: var(--snow-bg), linear-gradient(to left, var(--paper-base) 90%, #d4cec0 100%) !important;
+}
+
+/* --- Title Mascot Styling --- */
+.title-mascot {
+    width: 100px;
+    height: auto;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.1));
+}
+/* =========================================================================
+   CLOSED BOOK STATE & COVER STYLES
+   ========================================================================= */
+
+/* The Book Scene Container: Handles the position shift */
+.book-scene {
+    transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1.000);
+    will-change: transform;
+}
+
+/* CLOSED STATE:
+   The book is effectively "Right-Aligned" in structure (Cover is on the right side of spine).
+   To center the Cover on the screen, we must shift the entire book container.
+   Width of Book Spread = 600px (approx). Center is at 300px.
+   Right Page Center is at 450px.
+   We shift left by 25% of width to bring 450px to 300px (screen center).
+*/
+.book-scene.book-closed-state {
+    transform: translateX(-25%) translateY(0) rotateY(0deg);
+}
+
+/* OPEN STATE (Default):
+   Book is centered as a spread.
+*/
+.book-scene:not(.book-closed-state) {
+    transform: translateX(0) scale(1.0);
+}
+
+
+/* COVER PAGE SPECIFICS */
+.cover-page {
+    /* Ensure the cover looks like a real book cover */
+    box-shadow: 
+        inset 4px 0 10px rgba(0,0,0,0.1), /* Spine shadow */
+        inset -2px 0 5px rgba(255,255,255,0.3), /* Highlight edge */
+        5px 5px 15px rgba(0,0,0,0.15); /* Drop shadow */
+}
+
+/* Enhance the "Click to Open" Hint */
+@keyframes pulse-hint {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+
+#click-to-open {
+    animation: pulse-hint 2s infinite ease-in-out;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    font-family: 'Arial', sans-serif;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+    transition: background 0.3s;
+}
+
+#click-to-open:hover {
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+}
+
+/* Hide navigation arrows when closed */
+.book-closed-state ~ .prev-arrow,
+.book-closed-state ~ .next-arrow {
+    display: none !important;
+}
+
+/* Initial state of Left Base when closed */
+.left-base {
+    transition: opacity 0.8s ease-in-out;
+}
+/* HIDE CONFLICTING STYLES PREVENTING SINGLE PAGE VIEW */
+
+.book-scene.book-closed-state {
+    /* Center the cover (Right Page) on the screen */
+    transform: translateX(-25%);
+}
+
+/* Ensure left base is TOTALLY hidden when closed */
+.book-scene.book-closed-state .left-base {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Only the cover should be visible */
+.book-scene.book-closed-state .leaf:not(#leaf-cover), 
+.book-scene.book-closed-state .right-base {
+    /* Hide other right-side elements behind cover just in case */
+    /* Actually right-base is below cover, so it's fine */
+}
+
+/* When opened, left base becomes visible */
+.book-scene:not(.book-closed-state) .left-base {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transition: opacity 1s ease 0.5s; /* Delay to sync with cover opening */
+}
+/* FIX: Ensure the back of the cover doesn't hide Page 1 */
+#leaf-cover .leaf-back {
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+}
+
+/* Ensure Page 1 (Left Base) is fully visible when opened */
+.book-scene:not(.book-closed-state) .left-base {
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 5 !important; /* Ensure it's above the resting cover if needed */
+}
+
+/* EMERGENCY FIX: OVERRIDE EVERYTHING FOR PAGE 1 VISIBILITY */
+
+/* 1. Reset Leaf Cover Back to match other pages */
+#leaf-cover .leaf-back {
+    background-color: #fffdf9 !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 100 100'%3E%3Ctext x='15' y='35' font-family='serif' font-size='22' fill='%235599ff' opacity='0.4'%3E%E2%9D%84%3C/text%3E%3Ctext x='65' y='75' font-family='serif' font-size='28' fill='%235599ff' opacity='0.3'%3E%E2%9D%85%3C/text%3E%3Ctext x='75' y='25' font-family='serif' font-size='16' fill='%235599ff' opacity='0.3'%3E%E2%9D%86%3C/text%3E%3Ctext x='35' y='85' font-family='serif' font-size='18' fill='%235599ff' opacity='0.4'%3E%E2%9D%84%3C/text%3E%3C/svg%3E"), 
+                    linear-gradient(to right, #fffbef 95%, #d0c0b0 100%) !important;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05) !important;
+    backface-visibility: visible !important;
+}
+
+/* 2. Hide the Left Base completely since it's empty */
+.book-scene:not(.book-closed-state) .left-base {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    display: none !important;
+}
+
+/* 3. FINAL COVER BACK ADJUSTMENT: Sparser Snowflakes & No Text */
+#leaf-cover .leaf-back {
+    background-color: #fffdf9 !important;
+    /* Sparser Snowflake Pattern: 200x200 viewbox */
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Ctext x='40' y='60' font-family='serif' font-size='32' fill='%235599ff' opacity='0.25'%3E%E2%9D%84%3C/text%3E%3Ctext x='140' y='160' font-family='serif' font-size='28' fill='%235599ff' opacity='0.2'%3E%E2%9D%85%3C/text%3E%3Ctext x='150' y='40' font-family='serif' font-size='24' fill='%235599ff' opacity='0.15'%3E%E2%9D%86%3C/text%3E%3C/svg%3E"), 
+                    linear-gradient(to right, #fffbef 95%, #d0c0b0 100%) !important;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05) !important;
+    backface-visibility: visible !important;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Ensure left base is hidden */
+.book-scene:not(.book-closed-state) .left-base {
+    display: none !important;
+}
+
+/* FIX: Ensure Book has explicit dimensions so children height:100% works */
+.book-scene {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible; /* Allow 3D overflow */
+}
+
+.book {
+    width: 900px;
+    height: 600px; /* Explicit height is crucial for vertical centering */
+    position: relative;
+    transform-style: preserve-3d;
+}
+
+/* Ensure overlay covers screen */
+.book-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2000;
+    pointer-events: none; /* Allow clicks through if needed, but usually overlays block */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Make book interactive */
+.book {
+    pointer-events: auto;
+}
+
+/* Ensure Cover Page Flex Centering Works */
+.cover-page {
+    /* Height is already 100% from .page class */
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* FIX: Shift the closed book to the left to center the right-side cover on screen */
+.book-scene.book-closed-state .book {
+    transform: translateX(-225px); /* Half of spine width (450px) to bring Right Page Center to Screen Center */
+}
+
+/* FIX: Ensure arrows are visible and positioned correctly relative to the book */
+.nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5000 !important;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    color: #d14785;
+    font-size: 2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s;
+}
+
+.nav-arrow:hover {
+    background: white;
+    transform: translateY(-50%) scale(1.1);
+}
+
+/* Position arrows relative to the book scene container (which is full width) */
+.prev-arrow {
+    left: 20px; /* Fixed distance from screen edge */
+}
+
+.next-arrow {
+    right: 20px; /* Fixed distance from screen edge */
+}
+
+/* Hide arrows explicitly when closed (handled by JS 'hidden' class usually, but reinforce here) */
+.book-closed-state ~ .nav-arrow {
+    display: none !important;
+}
+
+/* Ensure arrows are NOT hidden by default CSS if 'hidden' class is removed */
+.nav-arrow:not(.hidden) {
+    display: flex !important;
+}
+
+/* --- FIX: CLOSED BOOK POSITIONING --- */
+/* Reset any previous transforms on the scene to avoid conflicts */
+.book-scene.book-closed-state {
+    transform: none !important;
+}
+
+/* 
+   Center the Closed Book Cover.
+   The Book is 900px wide. The Spine is at the center. 
+   The Cover (Right Page) is the right 450px.
+   To center the Cover, we shift the Book LEFT by half the page width (225px).
+*/
+.book-scene.book-closed-state .book {
+    transform: translateX(-225px) !important;
+    transition: transform 1.2s cubic-bezier(0.645, 0.045, 0.355, 1.000);
+}
+
+
+/* --- FIX: ARROWS NEXT TO BOOK --- */
+.nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5000 !important;
+    width: 60px;
+    height: 60px;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    display: flex; /* flex is required for centering arrow icon */
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    cursor: pointer;
+    /* Reset left/right/margins from previous code */
+    left: auto;
+    right: auto;
+    margin: 0;
+}
+
+/* Prev Arrow: Placed to the left of the open book (900px total width)
+   Center is 0. Left edge is -450px. Arrow width ~60px + gap 20px.
+   Position: calc(50% - 450px - 80px)
+*/
+.prev-arrow {
+    left: calc(50% - 540px) !important; 
+}
+
+/* Next Arrow: Placed to the right of the open book
+   Center is 0. Right edge is +450px.
+   Position: calc(50% + 450px + 20px)
+*/
+.next-arrow {
+    left: calc(50% + 480px) !important;
+}
+
+/* Ensure arrows are hidden when closed */
+.book-closed-state ~ .nav-arrow {
+    display: none !important;
+}
+
+/* FIX: ENABLE CLICKS ON ARROWS! */
+/* The parent overlay has pointer-events: none, so we must explicitly re-enable them for the arrows */
+.nav-arrow {
+    pointer-events: auto !important;
+}

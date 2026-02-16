@@ -1,0 +1,25 @@
+# System files
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Notes and Documentation (Turkish)
+*_TR.md
+TOBOGGAN_REDESIGN.md
+CONTROLS.md
+IMPROVEMENTS_TR.md
+LATEST_UPDATES_TR.md
+LOVE_WINS_UPDATE_TR.md
+COMPETITIVE_MODE_UPDATE_TR.md
+
+# Backup and Temporary Files
+yedek.html
+index_working_backup.html
+*.bak
+*.tmp
+
+# Helper Scripts
+*.ps1
+
+# Node modules (if any in future)
+node_modules/

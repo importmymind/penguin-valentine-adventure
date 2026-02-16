@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penguin's Valentine Adventure</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Three.js Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital@0;1&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Competitive Score UI (Dual Scores) -->
+    <!-- Competitive Score UI (Heart Icons) -->
+    <!-- Competitive Score UI (Heart Icons) -->
+    <div id="score-board" class="hidden"
+        style="position: absolute; top: 30px; left: 0; right: 0; width: 100%; pointer-events: none; z-index: 100; display: flex; justify-content: center; gap: 150px;">
+
+        <!-- Left: Blue Heart -->
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="font-size: 3.5rem; filter: drop-shadow(0 0 10px rgba(0, 170, 255, 0.8));">💙</div>
+            <div id="blue-score"
+                style="color: #ffffff; font-family: 'Arial Black', sans-serif; font-size: 3rem; text-shadow: 0 0 10px #00aaff;">
+                0</div>
+        </div>
+
+        <!-- Right: Pink Heart -->
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div id="pink-score"
+                style="color: #ffffff; font-family: 'Arial Black', sans-serif; font-size: 3rem; text-shadow: 0 0 10px #ff69b4;">
+                0</div>
+            <div style="font-size: 3.5rem; filter: drop-shadow(0 0 10px rgba(255, 105, 180, 0.8));">💖</div>
+        </div>
+    </div>
+
+    <div id="mouse-hint">
+        Camera: Drag Mouse<br>
+        Zoom: Scroll
+    </div>
+
+    <!-- Letter UI -->
+    <div id="letter-overlay" class="hidden">
+        <div class="envelope-wrapper">
+            <div class="envelope-back"></div>
+            <div class="letter-container">
+                <div class="letter-content">
+                    <h2>Happy Valentine's Day</h2>
+                    <p>My Love...</p>
+                    <p>I left the herd to find you,<br>I faced the darkness and the cold.</p>
+                    <p class="highlight">You are worth it.</p>
+                    <div class="penguin-couple">
+                        <div class="css-penguin">
+                            <div class="eye left">
+                                <div class="pupil"></div>
+                            </div>
+                            <div class="eye right">
+                                <div class="pupil"></div>
+                            </div>
+                        </div>
+                        <div class="css-heart">❤</div>
+                        <div class="css-penguin" style="animation-delay: 1s;">
+                            <div class="eye left">
+                                <div class="pupil"></div>
+                            </div>
+                            <div class="eye right">
+                                <div class="pupil"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="interactive-section">
+                    <h3>Will you be my Valentine?</h3>
+                    <div class="button-group">
+                        <button id="btn-yes" class="valentine-btn">Yes! 💖</button>
+                        <button id="btn-course" class="valentine-btn">Of Course! 🌸</button>
+                    </div>
+                </div>
+                <button id="close-letter" class="hidden">Close Letter</button>
+            </div>
+            <div class="envelope-front"></div>
+            <div class="envelope-flap"></div>
+        </div>
+    </div>
+
+    <!-- Realistic 3D Book UI -->
+    <div id="game-instructions" class="book-overlay">
+        <div class="book-scene">
+            <!-- 3D Book Container -->
+            <div class="book" id="myBook">
+
+                <!-- STATIC LEFT BASE (Underneath, just a stack base) -->
+                <div class="page static-page left-base" style="background: #fff; opacity: 0; pointer-events: none;">
+                </div>
+
+                <!-- COVER LEAF (Front: Cover Art, Back: Page 1 Title) -->
+                <div class="leaf" id="leaf-cover" style="z-index: 50;">
+                    <!-- Front Cover: Soft Blue, Centered Image -->
+                    <div class="leaf-front page cover-page"
+                        style="background: linear-gradient(135deg, #e6f3ff 0%, #f0faff 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 0 10px 10px 0; border: 1px solid #cce0ff; box-shadow: inset 5px 0 15px rgba(0,0,0,0.05); padding: 0;">
+                        <!-- Image Container (Centered, respecting aspect ratio) -->
+                        <div
+                            style="width: 90%; background: white; padding: 12px; border-radius: 4px; box-shadow: 0 8px 20px rgba(70, 100, 130, 0.15); display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                            <img src="assets/story/6.png"
+                                style="width: 100%; height: auto; display: block; border-radius: 2px;" alt="Cover Art">
+                        </div>
+
+                        <!-- Title Text -->
+                        <p
+                            style="font-family: 'Great Vibes', cursive; color: #5a7d9a; margin: 0; font-size: 2.8rem; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); text-align: center; line-height: 1.2;">
+                            Love in the Frozen Wild</p>
+                    </div>
+
+                    <!-- Inside Cover (Back): Page 1 (Title Page), Clean Snowflake Background -->
+                    <div class="leaf-back page" id="cover-back-page"
+                        style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div class="page-content center-xy">
+                            <div class="ornament">
+                                <img src="assets/story/5.png" alt="Penguin Mascot" class="title-mascot">
+                            </div>
+                            <h1 class="book-title-text" style="color: #d14785; font-size: 3rem; margin-top: 20px;">A
+                                Penguin's<br>Tale</h1>
+                            <div class="separator-line"
+                                style="background: #e6b3cc; height: 2px; width: 60px; margin: 20px auto;"></div>
+
+                            <!-- Page Number Only -->
+                            <span class="page-number" style="opacity: 0.6;">1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FLIPPABLE LEAF 1 -->
+                <!-- Front: P2 (Intro), Back: P3 (Journey) -->
+                <div class="leaf" id="leaf-1" style="z-index: 3;">
+                    <div class="leaf-front page">
+                        <div class="page-content">
+                            <h2 class="chapter-head">The Lonely Ice</h2>
+                            <div class="story-image-container">
+                                <img src="assets/story/1.png" alt="Lonely penguin" class="story-img">
+                            </div>
+                            <div class="text-body">
+                                <p><span class="drop-cap">I</span>n the vast, frozen wilderness, one heart beat alone.
+                                    Lost in the white crowds, surrounded yet isolated, searching for the one who truly
+                                    understands.</p>
+                            </div>
+                            <span class="page-number">2</span>
+                        </div>
+                    </div>
+                    <div class="leaf-back page">
+                        <div class="page-content">
+                            <h2 class="chapter-head">The Journey</h2>
+                            <div class="story-image-container">
+                                <img src="assets/story/2.png" alt="Walking penguin" class="story-img">
+                            </div>
+                            <div class="text-body">
+                                <p>Tonight, guided by the shimmering aurora and a love written in the stars, our hero
+                                    sets forth on a journey to find the one who makes the cold feel warm.</p>
+                            </div>
+                            <span class="page-number">3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FLIPPABLE LEAF 2 -->
+                <!-- Front: P4 (Meeting), Back: P5 (Mission) -->
+                <div class="leaf" id="leaf-2" style="z-index: 2;">
+                    <div class="leaf-front page">
+                        <div class="page-content">
+                            <h2 class="chapter-head">Destiny Calls</h2>
+                            <div class="story-image-container">
+                                <img src="assets/story/3.png" alt="Meeting on hill" class="story-img">
+                            </div>
+                            <div class="text-body">
+                                <p class="highlight-text">Will you find them before Valentine's Day?</p>
+                            </div>
+                            <span class="page-number">4</span>
+                        </div>
+                    </div>
+                    <div class="leaf-back page">
+                        <div class="page-content">
+                            <h2 class="chapter-head">Your Mission</h2>
+                            <div class="story-image-container">
+                                <img src="assets/story/4.png" alt="Hugging under aurora" class="story-img">
+                            </div>
+                            <div class="text-body">
+                                <p><span class="drop-cap">F</span>irst, travel to the Arctic village to find your
+                                    soulmate.</p>
+                                <p>Then, slide down the magical slopes together. Your goal is to collect <strong
+                                        style="color:#ff1493">Shining Hearts</strong>.</p>
+                            </div>
+                            <span class="page-number">5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STATIC RIGHT BASE (Page 6: Controls) -->
+                <div class="page static-page right-base">
+                    <div class="page-content center-xy">
+                        <h2 class="chapter-head">Controls</h2>
+
+                        <div class="control-grid">
+                            <div class="c-col">
+                                <span class="c-label">Blue Penguin</span>
+                                <div class="key-row">
+                                    <div class="key-box key-w">w</div>
+                                </div>
+                                <div class="key-row">
+                                    <div class="key-box key-a">a</div>
+                                    <div class="key-box key-s">s</div>
+                                    <div class="key-box key-d">d</div>
+                                </div>
+                            </div>
+                            <div class="c-col">
+                                <span class="c-label">Pink Penguin</span>
+                                <div class="key-row">
+                                    <div class="key-box key-up">↑</div>
+                                </div>
+                                <div class="key-row">
+                                    <div class="key-box key-left">←</div>
+                                    <div class="key-box key-down">↓</div>
+                                    <div class="key-box key-right">→</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="start-game-btn" class="start-btn-book">Begin Journey ➔</button>
+                        <span class="page-number">4</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Arrows (Hidden initially) -->
+            <button class="nav-arrow prev-arrow hidden" onclick="inputBookNav(-1)">❮</button>
+            <button class="nav-arrow next-arrow hidden" onclick="inputBookNav(1)">❯</button>
+        </div>
+
+        <!-- Falling Snow Container -->
+        <div id="snow-container"></div>
+    </div>
+
+    <script>
+        let currentLeafIndex = 0; // 0 = Spread 1 visible
+        const totalLeaves = 2; // Leaf 1, Leaf 2
+        let isBookClosed = true;
+
+        function closeBook() {
+            if (isBookClosed) return;
+            isBookClosed = true;
+
+            const bookScene = document.querySelector('.book-scene');
+            bookScene.classList.add('book-closed-state');
+
+            // Remove flipped class from cover to close it
+            const cover = document.getElementById('leaf-cover');
+            cover.classList.remove('flipped');
+
+            // Raise index back up
+            setTimeout(() => {
+                cover.style.zIndex = 50;
+            }, 300);
+
+            // Hide arrows immediately
+            document.querySelector('.next-arrow').classList.add('hidden');
+            document.querySelector('.prev-arrow').classList.add('hidden');
+        }
+
+        function openBook() {
+            if (!isBookClosed) return;
+            isBookClosed = false;
+
+            // Animate Book Container shift
+            const bookScene = document.querySelector('.book-scene');
+            bookScene.classList.remove('book-closed-state');
+
+            // Left Base remains hidden/empty as Page 1 is on Cover Back
+
+            // Flip Cover
+            const cover = document.getElementById('leaf-cover');
+            cover.classList.add('flipped');
+
+            // Allow interactions
+            setTimeout(() => {
+                cover.style.zIndex = 1;
+                cover.style.pointerEvents = 'auto'; // Page 1 (Cover Back) should be interactive?
+                // Actually after flip, it is "Page 1".
+            }, 600);
+
+            // Enable Arrows
+            setTimeout(updateArrows, 600);
+        }
+
+        window.inputBookNav = function (direction) {
+            console.log("Nav interaction:", direction, currentLeafIndex, isBookClosed);
+            // Forward (Next Page) -> Flip next leaf to Left
+            if (direction === 1) {
+                // If book is closed, open it first
+                if (isBookClosed) {
+                    openBook();
+                    return;
+                }
+                if (currentLeafIndex < totalLeaves) {
+                    currentLeafIndex++;
+                    flipLeaf(currentLeafIndex, true);
+                }
+            }
+            // Backward (Prev Page) -> Flip current leaf back to Right
+            else {
+                if (currentLeafIndex === 0) {
+                    // Close the book if at the start
+                    closeBook();
+                    return;
+                }
+                if (currentLeafIndex > 0) {
+                    flipLeaf(currentLeafIndex, false);
+                    currentLeafIndex--;
+                }
+            }
+            updateArrows();
+        };
+
+        function flipLeaf(leafNum, isFlippingLeft) {
+            const leaf = document.getElementById('leaf-' + leafNum);
+            if (!leaf) return;
+
+            if (isFlippingLeft) {
+                leaf.classList.add('flipped');
+                // Left Stack: Higher Leaf ID = Higher Z-Index (Leaf 2 on top of Leaf 1)
+                // Cover is Z=1. Leaf 1=11, Leaf 2=12.
+                leaf.style.zIndex = 10 + leafNum;
+            } else {
+                leaf.classList.remove('flipped');
+                // Right Stack: Lower Leaf ID = Higher Z-Index (Leaf 1 on top of Leaf 2)
+                // Original: Leaf 1=40, Leaf 2=30.
+                leaf.style.zIndex = 50 - (leafNum * 10);
+            }
+        }
+
+        function updateArrows() {
+            const prev = document.querySelector('.prev-arrow');
+            const next = document.querySelector('.next-arrow');
+
+            if (isBookClosed) {
+                prev.classList.add('hidden');
+                next.classList.add('hidden');
+                return;
+            }
+
+            // Always show Prev arrow when open, so we can close the book
+            prev.classList.remove('hidden');
+
+            if (currentLeafIndex === totalLeaves) next.classList.add('hidden');
+            else next.classList.remove('hidden');
+        }
+
+        // Handle start button click
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial Z-Index Setup for Right Stack
+            const l1 = document.getElementById('leaf-1');
+            const l2 = document.getElementById('leaf-2');
+            const cover = document.getElementById('leaf-cover');
+
+            // Cover on top (High Z)
+            if (cover) {
+                cover.style.zIndex = 50;
+                cover.addEventListener('click', openBook);
+            }
+
+            if (l1) l1.style.zIndex = 40;
+            if (l2) l2.style.zIndex = 30;
+
+            // Start in Closed State
+            const bookScene = document.querySelector('.book-scene');
+            bookScene.classList.add('book-closed-state'); // Centered
+
+            // Ensure Left Base is hidden initially
+            const leftBase = document.querySelector('.left-base');
+            if (leftBase) {
+                leftBase.style.opacity = '0';
+                leftBase.style.pointerEvents = 'none';
+            }
+
+            // Allow manual open via arrow click too
+            const nextArrow = document.querySelector('.next-arrow');
+            if (nextArrow) {
+                nextArrow.addEventListener('click', openBook);
+                nextArrow.classList.add('hidden'); // Ensure hidden initially
+            }
+
+            const prevArrow = document.querySelector('.prev-arrow');
+            if (prevArrow) prevArrow.classList.add('hidden'); // Initially hidden
+
+            // Keyboard Navigation
+            document.addEventListener('keydown', (e) => {
+                const instructions = document.getElementById('game-instructions');
+                if (instructions && !instructions.classList.contains('hidden') && instructions.style.display !== 'none') {
+                    if (e.key === 'ArrowRight') inputBookNav(1);
+                    if (e.key === 'ArrowLeft') inputBookNav(-1);
+                }
+            });
+
+            const startBtn = document.getElementById('start-game-btn');
+            if (startBtn) {
+                startBtn.addEventListener('click', () => {
+                    // Hide instructions with fade out
+                    const instructions = document.getElementById('game-instructions');
+                    instructions.style.opacity = '0';
+                    instructions.style.transition = 'opacity 1s ease';
+
+                    setTimeout(() => {
+                        instructions.classList.add('hidden');
+                        instructions.style.display = 'none';
+                    }, 1000);
+                });
+            }
+
+            // Initial Arrow State
+            updateArrows();
+
+            // Create Snowflakes for Book Overlay
+            const snowContainer = document.getElementById('snow-container');
+            if (snowContainer) {
+                const numFlakes = 60;
+                const chars = ['❄', '❅', '❆', '•'];
+
+                for (let i = 0; i < numFlakes; i++) {
+                    const flake = document.createElement('div');
+                    flake.className = 'snowflake';
+                    flake.style.left = Math.random() * 100 + '%';
+                    flake.innerText = chars[Math.floor(Math.random() * chars.length)];
+                    flake.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                    flake.style.opacity = Math.random() * 0.6 + 0.4;
+
+                    const duration = Math.random() * 5 + 5; // 5-10s falling time
+                    flake.style.animationDuration = duration + 's';
+                    flake.style.animationDelay = (Math.random() * 5) + 's'; // Random start
+
+                    snowContainer.appendChild(flake);
+                }
+            }
+        });
+    </script>
+
+    <div id="ui">
+        <div style="margin-bottom: 10px;">
+            <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span>
+        </div>
+        <div id="status">Walk into the darkness...</div>
+    </div>
+
+
+
+
+    <!-- Toboggan Controls Overlay -->
+    <div id="toboggan-controls" class="hidden"
+        style="position:absolute; top: 50%; right: 20px; transform: translateY(-50%); background: rgba(0, 0, 0, 0.7); padding: 20px; border-radius: 15px; color: white; font-family: 'Playfair Display', serif; z-index: 50; backdrop-filter: blur(5px); border: 2px solid rgba(255, 255, 255, 0.2);">
+        <div style="margin-bottom: 15px;">
+            <div style="color: #00aaff; font-size: 1.2rem; font-weight: bold; margin-bottom: 5px;">
+                🐧 Player 1 (Blue Scarf)
+            </div>
+            <div style="display: flex; gap: 5px; justify-content: center;">
+                <span class="key" style="background: rgba(0, 170, 255, 0.3); border-color: #00aaff;">A</span>
+                <span class="key" style="background: rgba(0, 170, 255, 0.3); border-color: #00aaff;">D</span>
+            </div>
+            <div style="font-size: 0.9rem; margin-top: 5px; opacity: 0.8;">Steer Left/Right</div>
+        </div>
+        <div style="border-top: 1px solid rgba(255, 255, 255, 0.3); padding-top: 15px;">
+            <div style="color: #ff69b4; font-size: 1.2rem; font-weight: bold; margin-bottom: 5px;">
+                🐧 Player 2 (Pink Scarf)
+            </div>
+            <div style="display: flex; gap: 5px; justify-content: center;">
+                <span class="key" style="background: rgba(255, 105, 180, 0.3); border-color: #ff69b4;">←</span>
+                <span class="key" style="background: rgba(255, 105, 180, 0.3); border-color: #ff69b4;">→</span>
+            </div>
+            <div style="font-size: 0.9rem; margin-top: 5px; opacity: 0.8;">Steer Left/Right</div>
+        </div>
+    </div>
+
+    <div id="ending-screen" class="hidden"
+        style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; flex-direction:column; justify-content:center; align-items:center; z-index: 200; opacity: 0; transition: opacity 2s;">
+        <h1 style="color: #fff; font-family: 'Great Vibes'; font-size: 6rem; text-shadow: 0 0 20px #ff1493; margin: 0;">
+            Happy Ending</h1>
+        <p style="color: #ddd; font-family: 'Playfair Display'; font-size: 2rem;">Together Forever</p>
+        <button id="btn-restart" class="valentine-btn"
+            style="margin-top: 30px; font-size: 1.5rem; padding: 15px 30px;">Play Again ❄️</button>
+    </div>
+
+    <div id="guidance-overlay" class="hidden">
+        <div class="guidance-card">
+            <h2>Let's Go Tobogganing!</h2>
+            <p>Follow the pink lights to the slope.</p>
+            <div class="space-prompt">Press [SPACE] to Continue</div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
