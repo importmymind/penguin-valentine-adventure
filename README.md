@@ -2,8 +2,17 @@
 
 A heartwarming 3D web-based game featuring two penguins finding love in the frozen wilderness. Developed using **Three.js**, this project combines exploration, interactive storytelling, and a fun tobogganing mini-game perfect for Valentine's Day.
 
-![Project Banner]![Uploading Gemini_Generated_Image_4tmuij4tmuij4tmu.png…]
-*(Note: Screenshot/banner placeholder based on project assets)*
+<img width="2560" height="1664" alt="Gemini_Generated_Image_4tmuij4tmuij4tmu" src="https://github.com/user-attachments/assets/5600ca93-7d1f-47e9-b5d8-51dffe005443" />
+
+<img width="1103" height="691" alt="Ekran görüntüsü 2026-02-16 170406" src="https://github.com/user-attachments/assets/5810204b-f88e-47c1-b283-4eda111e0569" />
+
+<img width="1149" height="916" alt="Ekran görüntüsü 2026-02-16 163040" src="https://github.com/user-attachments/assets/de355739-d42d-4542-babf-023a8b5511b8" />
+<img width="1111" height="707" alt="Ekran görüntüsü 2026-02-16 170429" src="https://github.com/user-attachments/assets/9534bb1f-5ee3-4017-8933-444e0db853af" />
+
+<img width="842" height="625" alt="Ekran görüntüsü 2026-02-16 170505" src="https://github.com/user-attachments/assets/f03d5f28-c64d-4e90-b6e1-24eaeaf277e6" />
+<img width="1857" height="846" alt="Ekran görüntüsü 2026-02-16 170600" src="https://github.com/user-attachments/assets/b4d455bd-f082-4edc-9227-2f7d42777cb3" />
+
+
 
 ## 📖 About the Project
 Inspired by the viral **"Nihilist Penguin"** meme (famous for the *"but why?"* moment), this project reimagines that solitary walk into the void. 
