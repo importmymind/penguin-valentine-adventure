@@ -6,8 +6,11 @@ A heartwarming 3D web-based game featuring two penguins finding love in the froz
 *(Note: Screenshot/banner placeholder based on project assets)*
 
 ## 📖 About the Project
+Inspired by the viral **"Nihilist Penguin"** meme (famous for the *"but why?"* moment), this project reimagines that solitary walk into the void. 
 
-This project was originally developed during a summer internship and has been recently updated with a special Valentine's Day theme. The game takes players on a journey through the "Lonely Ice" to find their soulmate, culminating in a joyful slide down the snowy slopes under the Aurora Borealis.
+**The Twist:** What if the penguin didn't leave the colony out of despair, but to find their soulmate? 
+
+This personal hobby project combines that philosophical solitude with a heartwarming Valentine's Day theme. You play as the lone penguin braving the "Lonely Ice," not to meet a dark fate, but to reunite with your love and joyful slide down the snowy slopes together under the Aurora Borealis.
 
 ## ✨ Features
 
